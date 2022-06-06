@@ -34,208 +34,62 @@ int module_unload(YR_OBJECT* module_object) {
     return ERROR_SUCCESS;
 }
 
-define_function(query_s_s) {
-    json_object* root = module()->data;
-    if (root == NULL) {
-        return ERROR_INVALID_FILE;
-    }
+#define ARG_TYPE_STRING void* arg1 = string_argument(2)
+#define ARG_TYPE_INT    int64_t arg1 = integer_argument(2)
+#define ARG_TYPE_FLOAT  double arg1 = float_argument(2)
+#define RET_TYPE_STRING return_string(string)
+#define RET_TYPE_INT    return_integer(atoi(string))
+#define RET_TYPE_FLOAT  return_float(atof(string))
 
-    char* path = string_argument(1);
-    void* arg1 = string_argument(2);
-
-    json_object* obj;
-
-    int rc = json_pointer_getf(root, &obj, path, arg1);
-
-    const char *string = json_object_get_string(obj);
-
-    if (rc == 0) {
-        return_string(string);
-    } else {
-        return_string(YR_UNDEFINED);
-    }
+#define make_query_function(NAME, ARG2_DEF, RET_VAL)   \
+int NAME(                                              \
+    YR_VALUE* __args,                                  \
+    YR_SCAN_CONTEXT* __context,                        \
+    YR_OBJECT_FUNCTION* __function_obj) {              \
+                                                       \
+    json_object* root = module()->data;                \
+    if (root == NULL) {                                \
+        return ERROR_INVALID_FILE;                     \
+    }                                                  \
+                                                       \
+    char* path = string_argument(1);                   \
+    ARG2_DEF;                                          \
+                                                       \
+    json_object* obj;                                  \
+                                                       \
+    int rc = json_pointer_getf(root, &obj, path, arg1);\
+                                                       \
+    const char *string = json_object_get_string(obj);  \
+                                                       \
+    if (rc == 0) {                                     \
+        RET_VAL;                                       \
+    } else {                                           \
+        return_string(YR_UNDEFINED);                   \
+    }                                                  \
 }
 
-define_function(query_d_s) {
-    json_object* root = module()->data;
-    if (root == NULL) {
-        return ERROR_INVALID_FILE;
-    }
+make_query_function(query_s_s, ARG_TYPE_STRING, RET_TYPE_STRING)
+make_query_function(query_d_s, ARG_TYPE_INT, RET_TYPE_STRING)
+make_query_function(query_f_s, ARG_TYPE_FLOAT, RET_TYPE_STRING)
+make_query_function(query_s_i, ARG_TYPE_STRING, RET_TYPE_INT)
+make_query_function(query_d_i, ARG_TYPE_INT, RET_TYPE_INT)
+make_query_function(query_f_i, ARG_TYPE_FLOAT, RET_TYPE_INT)
+make_query_function(query_s_f, ARG_TYPE_STRING, RET_TYPE_FLOAT)
+make_query_function(query_d_f, ARG_TYPE_INT, RET_TYPE_FLOAT)
+make_query_function(query_f_f, ARG_TYPE_FLOAT, RET_TYPE_FLOAT)
 
-    char* path = string_argument(1);
-    int64_t arg1 = integer_argument(2);
-
-    json_object* obj;
-
-    int rc = json_pointer_getf(root, &obj, path, arg1);
-
-    const char *string = json_object_get_string(obj);
-
-    if (rc == 0) {
-        return_string(string);
-    } else {
-        return_string(YR_UNDEFINED);
-    }
-}
-
-define_function(query_f_s) {
-    json_object* root = module()->data;
-    if (root == NULL) {
-        return ERROR_INVALID_FILE;
-    }
-
-    char* path = string_argument(1);
-    double arg1 = float_argument(2);
-
-    json_object* obj;
-
-    int rc = json_pointer_getf(root, &obj, path, arg1);
-
-    const char *string = json_object_get_string(obj);
-
-    if (rc == 0) {
-        return_string(string);
-    } else {
-        return_string(YR_UNDEFINED);
-    }
-}
-
-
-define_function(query_s_i) {
-    json_object* root = module()->data;
-    if (root == NULL) {
-        return ERROR_INVALID_FILE;
-    }
-
-    char* path = string_argument(1);
-    void* arg1 = string_argument(2);
-
-    json_object* obj;
-
-    int rc = json_pointer_getf(root, &obj, path, arg1);
-
-    const char *string = json_object_get_string(obj);
-
-    if (rc == 0) {
-        return_integer(atoi(string));
-    } else {
-        return_string(YR_UNDEFINED);
-    }
-}
-
-define_function(query_d_i) {
-    json_object* root = module()->data;
-    if (root == NULL) {
-        return ERROR_INVALID_FILE;
-    }
-
-    char* path = string_argument(1);
-    int64_t arg1 = integer_argument(2);
-
-    json_object* obj;
-
-    int rc = json_pointer_getf(root, &obj, path, arg1);
-
-    const char *string = json_object_get_string(obj);
-
-    if (rc == 0) {
-        return_integer(atoi(string));
-    } else {
-        return_string(YR_UNDEFINED);
-    }
-}
-
-define_function(query_f_i) {
-    json_object* root = module()->data;
-    if (root == NULL) {
-        return ERROR_INVALID_FILE;
-    }
-
-    char* path = string_argument(1);
-    double arg1 = float_argument(2);
-
-    json_object* obj;
-
-    int rc = json_pointer_getf(root, &obj, path, arg1);
-
-    const char *string = json_object_get_string(obj);
-
-    if (rc == 0) {
-        return_integer(atoi(string));
-    } else {
-        return_string(YR_UNDEFINED);
-    }
-}
-
-
-define_function(query_s_f) {
-    json_object* root = module()->data;
-    if (root == NULL) {
-        return ERROR_INVALID_FILE;
-    }
-
-    char* path = string_argument(1);
-    void* arg1 = string_argument(2);
-
-    json_object* obj;
-
-    int rc = json_pointer_getf(root, &obj, path, arg1);
-
-    const char *string = json_object_get_string(obj);
-
-    if (rc == 0) {
-        return_string(string);
-    } else {
-        return_string(YR_UNDEFINED);
-    }
-}
-
-define_function(query_d_f) {
-    json_object* root = module()->data;
-    if (root == NULL) {
-        return ERROR_INVALID_FILE;
-    }
-
-    char* path = string_argument(1);
-    int64_t arg1 = integer_argument(2);
-
-    json_object* obj;
-
-    int rc = json_pointer_getf(root, &obj, path, arg1);
-
-    const char *string = json_object_get_string(obj);
-
-    if (rc == 0) {
-        return_float(atof(string));
-    } else {
-        return_string(YR_UNDEFINED);
-    }
-}
-
-define_function(query_f_f) {
-    json_object* root = module()->data;
-    if (root == NULL) {
-        return ERROR_INVALID_FILE;
-    }
-
-    char* path = string_argument(1);
-    double arg1 = float_argument(2);
-
-    json_object* obj;
-
-    int rc = json_pointer_getf(root, &obj, path, arg1);
-
-    const char *string = json_object_get_string(obj);
-
-    if (rc == 0) {
-        return_float(atof(string));
-    } else {
-        return_string(YR_UNDEFINED);
-    }
-}
-
-
-
+/* Declare all permutations of query.  
+ *
+ * First arg is 'path', a string starting with /, with 
+ * object names separated by / digging deeper into the json
+ * structure.  path can contain a single paramerer: %s, %d, or %f
+ *
+ * Second arg is the parameter, a string, integer, or float.
+ *
+ * declare_function allows overloading the function name based on
+ * the args, but not the return value, hence query_s is
+ * the version which returns a string. 
+ */
 begin_declarations;
     declare_function("query", "s", "s", query_s_s);
     declare_function("query", "ss", "s", query_s_s);
