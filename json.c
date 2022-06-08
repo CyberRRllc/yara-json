@@ -1,3 +1,5 @@
+#include <time.h>
+#include <stdlib.h>
 #include <stdio.h>
 #include <yara/modules.h>
 #include <yara/mem.h>
@@ -34,7 +36,23 @@ int module_unload(YR_OBJECT* module_object) {
     return ERROR_SUCCESS;
 }
 
-#define ARG_TYPE_STRING void* arg1 = string_argument(2)
+define_function(parsedate) {
+    struct tm *tmp;
+
+    setenv("DATEMSK", "./date-mask", 1);
+    char* datetime_string = string_argument(1);
+    tmp = getdate(datetime_string);
+
+    if (tmp == NULL) {
+        printf("getdate %s failed; getdate_err = %d\n",
+             datetime_string, getdate_err);
+        return_integer(YR_UNDEFINED);
+    }
+
+    return_integer(mktime(tmp));
+}
+
+#define ARG_TYPE_STRING char* arg1 = string_argument(2)
 #define ARG_TYPE_INT    int64_t arg1 = integer_argument(2)
 #define ARG_TYPE_FLOAT  double arg1 = float_argument(2)
 #define RET_TYPE_STRING return_string(string)
@@ -42,10 +60,7 @@ int module_unload(YR_OBJECT* module_object) {
 #define RET_TYPE_FLOAT  return_float(atof(string))
 
 #define make_query_function(NAME, ARG2_DEF, RET_VAL)   \
-int NAME(                                              \
-    YR_VALUE* __args,                                  \
-    YR_SCAN_CONTEXT* __context,                        \
-    YR_OBJECT_FUNCTION* __function_obj) {              \
+define_function(NAME) {                                \
                                                        \
     json_object* root = module()->data;                \
     if (root == NULL) {                                \
@@ -91,6 +106,8 @@ make_query_function(query_f_f, ARG_TYPE_FLOAT, RET_TYPE_FLOAT)
  * the version which returns a string. 
  */
 begin_declarations;
+    declare_function("parsedate", "s", "i", parsedate);
+
     declare_function("query", "s", "s", query_s_s);
     declare_function("query", "ss", "s", query_s_s);
     declare_function("query", "si", "s", query_d_s);
